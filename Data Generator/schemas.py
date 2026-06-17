@@ -74,9 +74,12 @@ class StudentEvent:
     produced_at: datetime = field(default_factory=datetime.utcnow)
 
     @property
+    # The Kafka topic this event should be published to, derived from its type.
     def topic(self) -> str:
         return TOPIC_FOR_EVENT[self.event_type]
 
+    # Serializes the event to a dict for JSON encoding. Datetime fields are converted to ISO format strings.
+    # simply transforming a python object/dataclass to a dict, so we can JSON-encode it for Kafka. 
     def to_dict(self) -> Dict[str, Any]:
         return {
             "event_id": self.event_id,
