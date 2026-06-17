@@ -33,7 +33,11 @@ flowchart TD
     B --> C[intl.student.applications]
     B --> D[intl.student.documents]
     B --> E[intl.student.visa_status]
-    B --> F[...5 more topics]
+    B --> F[intl.student.enrollment]
+    B --> G[intl.student.registration]
+    B --> H[intl.student.opt_cpt]
+    B --> I[intl.student.status_change]
+    B --> J[intl.student.graduation]
 ```
 
 ## population.py — the student blueprint
