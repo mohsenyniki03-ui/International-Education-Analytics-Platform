@@ -29,12 +29,30 @@ def build_all_events(num_students: int, seed: Optional[int]) -> List[StudentEven
     for student in students:
         all_events.extend(generate_student_events(student))
     all_events.sort(key=lambda e: e.event_timestamp)
-    return all_events
+    return all_events, students
 
 
-def run_dry_run(events: List[StudentEvent]) -> None:
+def run_dry_run(events: List[StudentEvent], group_by_student: bool = False) -> None:
+    if not group_by_student:
+        for event in events:
+            print(json.dumps(event.to_dict()))
+        return
+
+    # Group events by student_id, preserving per-student chronological order
+    from collections import defaultdict
+    grouped = defaultdict(list)
     for event in events:
-        print(json.dumps(event.to_dict()))
+        grouped[event.student_id].append(event)
+
+    for i, (student_id, student_events) in enumerate(grouped.items(), start=1):
+        print(f"\n{'─' * 60}")
+        print(f"  Student {i} | ID: {student_id}")
+        print(f"  {len(student_events)} events | "
+              f"First: {student_events[0].event_type.value} | "
+              f"Last: {student_events[-1].event_type.value}")
+        print(f"{'─' * 60}")
+        for event in student_events:
+            print(json.dumps(event.to_dict(), indent=2))
 
 
 def run_backfill(events: List[StudentEvent], bootstrap_servers: str) -> None:
@@ -79,14 +97,19 @@ def main() -> None:
     parser.add_argument("--mode", choices=["dry-run", "backfill", "stream"], default="dry-run")
     parser.add_argument("--bootstrap-servers", default="localhost:9092")
     parser.add_argument("--speed", type=float, default=3600.0)
+    parser.add_argument(
+        "--group-by-student",
+        action="store_true",
+        help="dry-run only: print all events per student together instead of global chronological order"
+    )
     args = parser.parse_args()
 
     logger.info("Generating %d students (seed=%s)...", args.num_students, args.seed)
-    events = build_all_events(args.num_students, args.seed)
+    events, _ = build_all_events(args.num_students, args.seed)
     logger.info("Generated %d events total.", len(events))
 
     if args.mode == "dry-run":
-        run_dry_run(events)
+        run_dry_run(events, group_by_student=args.group_by_student)
     elif args.mode == "backfill":
         run_backfill(events, args.bootstrap_servers)
     elif args.mode == "stream":

@@ -9,7 +9,7 @@ drop-off (not every applicant enrolls, not every enrolled student graduates).
 from __future__ import annotations
 
 import random
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import List, Optional
 
 from population import TERMS, Student
@@ -36,7 +36,7 @@ STEM_PROGRAMS = {"Computer Science", "Data Science", "Electrical Engineering"}
 
 
 def _to_dt(d: date) -> datetime:
-    return datetime(d.year, d.month, d.day, 9, 0, 0) + timedelta(
+    return datetime(d.year, d.month, d.day, 9, 0, 0, tzinfo=timezone.utc) + timedelta(
         hours=random.randint(0, 9), minutes=random.randint(0, 59)
     )
 
