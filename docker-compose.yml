@@ -1,0 +1,81 @@
+version: "3.9"
+
+# This file starts the entire local development environment with one command:
+#   docker compose up
+#
+# Services start in dependency order:
+#   1. Zookeeper  (Kafka's coordinator — must be healthy before Kafka starts)
+#   2. Kafka      (the reliable event holder — must be healthy before generator starts)
+#   3. Generator  (our Python producer — streams synthetic student events into Kafka)
+#
+# To stop and clean up everything:
+#   docker compose down
+
+services:
+
+  # ── 1. ZOOKEEPER ────────────────────────────────────────────────────────────
+  # Kafka's coordination service. Keeps track of which brokers are alive,
+  # where each partition lives, and who is the leader of each partition.
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181   # the port Kafka will use to talk to Zookeeper
+      ZOOKEEPER_TICK_TIME: 2000     # heartbeat interval in milliseconds
+    ports:
+      - "2181:2181"                 # expose so we can inspect Zookeeper from the host if needed
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo ruok | nc localhost 2181 | grep imok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── 2. KAFKA ─────────────────────────────────────────────────────────────────
+  # The reliable event holder. Receives events from the generator and holds
+  # them in ordered, partitioned topics until downstream consumers are ready.
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy   # waits for Zookeeper to pass its healthcheck first
+    ports:
+      - "9092:9092"                 # exposes Kafka to the host machine (for local testing/CLI)
+    environment:
+      KAFKA_BROKER_ID: 1            # unique ID for this broker (matters in multi-broker clusters)
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181   # where to find Zookeeper
+      # Two listeners: one for traffic inside Docker (PLAINTEXT), one for traffic
+      # from your Mac host machine (PLAINTEXT_HOST). This split is necessary because
+      # "kafka" resolves inside Docker's network but not on your Mac.
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1     # 1 because we only have one broker locally
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"        # topics are created automatically on first use
+      KAFKA_LOG_RETENTION_HOURS: 168                 # keep messages for 7 days locally
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  # ── 3. GENERATOR ─────────────────────────────────────────────────────────────
+  # Our synthetic data producer. Generates a population of fake international
+  # students, simulates their lifecycle events, and publishes them to Kafka.
+  # Runs in backfill mode: pushes all events as fast as possible so Kafka has
+  # a full dataset for Airflow and Spark to process in Week 2.
+  generator:
+    build:
+      context: ./data-generator      # build the image from our Dockerfile
+    container_name: generator
+    depends_on:
+      kafka:
+        condition: service_healthy   # waits for Kafka to pass its healthcheck first
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092   # uses the internal Docker network address
+    command: [
+      "--mode", "backfill",
+      "--num-students", "2000",
+      "--seed", "42",                # fixed seed = same population every run, good for dev
+      "--bootstrap-servers", "kafka:29092"
+    ]
