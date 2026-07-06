@@ -1,0 +1,41 @@
+# CI — runs on every push and pull request to main
+#
+# 1. Spins up a clean Ubuntu machine
+# 2. Checks out the repo
+# 3. Installs Python 3.11
+# 4. Installs dependencies (faker, confluent-kafka, pytest)
+# 5. Runs the full pytest suite
+
+name: CI
+
+on:
+  push:
+    branches: [main]        # runs when you push to main
+  pull_request:
+    branches: [main]        # runs when a PR targets main
+
+jobs:
+  test:
+    name: Run pytest suite
+    runs-on: ubuntu-latest  # GitHub spins up a fresh Ubuntu VM for this
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # confluent-kafka requires librdkafka to build its C extension
+      - name: Install system dependencies
+        run: sudo apt-get install -y librdkafka-dev
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install faker==24.4.0 confluent-kafka==2.3.0 pytest==8.1.1
+
+      - name: Run tests
+        run: pytest tests/ -v --tb=short
