@@ -1,5 +1,3 @@
-version: "3.9"
-
 # This file starts the entire local development environment with one command:
 #   docker compose up
 #
@@ -25,10 +23,11 @@ services:
     ports:
       - "2181:2181"                 # expose so we can inspect Zookeeper from the host if needed
     healthcheck:
-      test: ["CMD", "bash", "-c", "echo ruok | nc localhost 2181 | grep imok"]
+      test: ["CMD-SHELL", "timeout 5 bash -c 'cat < /dev/null > /dev/tcp/localhost/2181' && exit 0 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 15s
 
   # ── 2. KAFKA ─────────────────────────────────────────────────────────────────
   # The reliable event holder. Receives events from the generator and holds
