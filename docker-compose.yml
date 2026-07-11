@@ -9,6 +9,10 @@
 # To stop and clean up everything:
 #   docker compose down
 
+volumes:
+  postgres_data:
+  localstack_data:
+
 services:
 
   # ── 1. ZOOKEEPER ────────────────────────────────────────────────────────────
@@ -78,3 +82,76 @@ services:
       "--seed", "42",                # fixed seed = same population every run, good for dev
       "--bootstrap-servers", "kafka:29092"
     ]
+  # ── 4. POSTGRESQL ────────────────────────────────────────────────────────────
+  # Airflow's metadata database. Stores DAG run history, task states,
+  # logs, and everything Airflow needs to remember between runs.
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  
+  # ── 5. LOCALSTACK ────────────────────────────────────────────────────────────
+  # Simulates AWS S3 locally so we don't incur cloud costs during development.
+  # Airflow DAGs write raw events and curated Spark output here.
+  localstack:
+    image: localstack/localstack:3.4
+    container_name: localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3
+    volumes:
+      - localstack_data:/var/lib/localstack
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4566/_localstack/health | grep -q '\"s3\": \"available\"' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+  
+  # ── 6. AIRFLOW INIT ──────────────────────────────────────────────────────────
+  # Runs once to initialize the Airflow database and create the admin user.
+  # Exits after completion — not a long-running service.
+  airflow-init:
+    image: apache/airflow:2.9.1
+    container_name: airflow-init
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CELERY__BROKER_URL: redis://redis:6379/0
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
+    command: [
+      "bash", "-c",
+      "airflow db migrate && airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com"
+    ]
+  
+  # ── 7. REDIS ─────────────────────────────────────────────────────────────────
+  # Message broker between Airflow scheduler and worker.
+  # Scheduler drops tasks here, worker picks them up.
+  redis:
+    image: redis:7.2
+    container_name: redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    
+  
