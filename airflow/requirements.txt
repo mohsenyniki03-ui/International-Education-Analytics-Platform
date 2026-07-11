@@ -1,0 +1,4 @@
+confluent-kafka==2.3.0 # needed for Kafka Consumer, to consume messages from Kafka topics
+pandas==2.2.2 # needed for data manipulation and analysis, specifically for writing parquet files
+pyarrow==16.0.0 # needed for reading and writing parquet files
+boto3==1.34.0 # needed for AWS S3 interactions
