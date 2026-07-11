@@ -153,5 +153,98 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  
+  # ── 8. AIRFLOW WEBSERVER ─────────────────────────────────────────────────────
+  # The browser UI. Open http://localhost:8080 to see DAGs and task runs.
+  airflow-webserver:
+    image: apache/airflow:2.9.1
+    container_name: airflow-webserver
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+    environment:
+      AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CELERY__BROKER_URL: redis://redis:6379/0
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
+      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+    ports:
+      - "8080:8080"
+    command: webserver
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health | grep -q 'healthy' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+  
+  # ── 9. AIRFLOW SCHEDULER ─────────────────────────────────────────────────────
+  # Watches the clock and triggers tasks in the right order.
+  # Sends tasks to Redis where the worker picks them up.
+  airflow-scheduler:
+    image: apache/airflow:2.9.1
+    container_name: airflow-scheduler
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+    environment:
+      AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CELERY__BROKER_URL: redis://redis:6379/0
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
+      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+    command: scheduler
+    healthcheck:
+      test: ["CMD-SHELL", "airflow jobs check --job-type SchedulerJob --hostname $(hostname) | grep -q 'Found one alive job' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+  
+  # ── 10. AIRFLOW WORKER ───────────────────────────────────────────────────────
+  # Executes the actual tasks the scheduler sends via Redis.
+  airflow-worker:
+    image: apache/airflow:2.9.1
+    container_name: airflow-worker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+    environment:
+      AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CELERY__BROKER_URL: redis://redis:6379/0
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
+      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+    command: celery worker
+    healthcheck:
+      test: ["CMD-SHELL", "celery --app airflow.executors.celery_executor.app inspect ping | grep -q 'pong' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     
   
