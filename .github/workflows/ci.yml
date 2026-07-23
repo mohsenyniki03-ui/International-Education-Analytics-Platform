@@ -61,26 +61,26 @@ jobs:
             --exclude=__pycache__ \
             --ignore=E501,W503
 
-    dbt-validate:
-    name: Validate dbt models
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  dbt-validate:
+  name: Validate dbt models
+  runs-on: ubuntu-latest
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
 
-      - name: Install dbt
-        run: pip install dbt-postgres==1.8.2
+    - name: Install dbt
+      run: pip install dbt-postgres==1.8.2
 
-      - name: Validate dbt models compile
-        run: |
-          cd eduflow_dbt
-          dbt compile --profiles-dir . --target dev
-        env:
-          # dbt needs a profiles.yml but we use a dummy connection
-          # since we're only compiling (not running) the models
-          DBT_PROFILES_DIR: .
+    - name: Validate dbt models compile
+      run: |
+        cd eduflow_dbt
+        dbt compile --profiles-dir . --target dev
+      env:
+        # dbt needs a profiles.yml but we use a dummy connection
+        # since we're only compiling (not running) the models
+        DBT_PROFILES_DIR: .
