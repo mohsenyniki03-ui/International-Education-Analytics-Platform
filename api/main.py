@@ -8,15 +8,6 @@ for the dashboard frontend.
 Run locally:
     pip install fastapi uvicorn psycopg2-binary
     uvicorn api.main:app --reload --port 8000
-
-Endpoints:
-    GET /api/funnel           — application → enrollment → graduation counts
-    GET /api/countries        — students per country (top 20)
-    GET /api/enrollment-rates — enrollment rate per country (top 15)
-    GET /api/programs         — students per program
-    GET /api/degree-levels    — breakdown by degree level
-    GET /api/funding-sources  — breakdown by funding source
-    GET /api/metrics          — key summary metrics
 """
 
 from fastapi import FastAPI
@@ -28,7 +19,6 @@ import os
 
 app = FastAPI(title="EduFlow Analytics API")
 
-# allow the frontend to call this API from any origin
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -39,10 +29,6 @@ app.add_middleware(
 # ── DATABASE CONNECTION ───────────────────────────────────────────────────────
 
 def get_connection():
-    """
-    Returns a connection to the PostgreSQL warehouse.
-    Uses environment variables in production, falls back to local defaults.
-    """
     return psycopg2.connect(
         host=os.getenv("WAREHOUSE_HOST", "localhost"),
         port=int(os.getenv("WAREHOUSE_PORT", "5432")),
@@ -53,10 +39,6 @@ def get_connection():
 
 
 def query(sql: str, params=None) -> list[dict]:
-    """
-    Executes a SQL query and returns results as a list of dictionaries.
-    Each dictionary represents one row with column names as keys.
-    """
     conn = get_connection()
     try:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
@@ -67,11 +49,12 @@ def query(sql: str, params=None) -> list[dict]:
 
 
 # ── ENDPOINTS ─────────────────────────────────────────────────────────────────
+
 @app.get("/api/metrics")
 def get_metrics():
     students = query("SELECT COUNT(*) as total FROM dim_students")[0]["total"]
     countries = query("SELECT COUNT(DISTINCT country_of_origin) as total FROM dim_students")[0]["total"]
-    
+
     funnel = query("""
         SELECT
             COUNT(DISTINCT CASE WHEN event_type = 'enrollment_confirmed' THEN student_id END) as enrolled,
@@ -96,18 +79,11 @@ def get_metrics():
 
 @app.get("/api/funnel")
 def get_funnel():
-    """
-    The application → enrollment → graduation funnel.
-    Shows how many students pass through each stage.
-    """
     result = query("""
         SELECT
-            COUNT(DISTINCT CASE WHEN event_type = 'application_submitted'
-                THEN student_id END)  as applied,
-            COUNT(DISTINCT CASE WHEN event_type = 'enrollment_confirmed'
-                THEN student_id END)  as enrolled,
-            COUNT(DISTINCT CASE WHEN event_type = 'graduation'
-                THEN student_id END)  as graduated
+            COUNT(DISTINCT CASE WHEN event_type = 'application_submitted' THEN student_id END) as applied,
+            COUNT(DISTINCT CASE WHEN event_type = 'enrollment_confirmed'  THEN student_id END) as enrolled,
+            COUNT(DISTINCT CASE WHEN event_type = 'graduation'            THEN student_id END) as graduated
         FROM fact_student_events
     """)
     return result[0] if result else {}
@@ -115,14 +91,8 @@ def get_funnel():
 
 @app.get("/api/countries")
 def get_countries():
-    """
-    Number of students per country of origin, top 20.
-    Used for the bar chart on the dashboard.
-    """
     return query("""
-        SELECT
-            country_of_origin,
-            COUNT(*) as students
+        SELECT country_of_origin, COUNT(*) as students
         FROM dim_students
         GROUP BY country_of_origin
         ORDER BY students DESC
@@ -132,19 +102,14 @@ def get_countries():
 
 @app.get("/api/enrollment-rates")
 def get_enrollment_rates():
-    """
-    Enrollment rate per country: what percentage of applicants from each
-    country successfully enrolled. Top 15 by number of applicants.
-    """
     return query("""
         SELECT
             s.country_of_origin,
-            COUNT(DISTINCT s.student_id)                                       as applied,
-            COUNT(DISTINCT CASE WHEN f.event_type = 'enrollment_confirmed'
-                THEN f.student_id END)                                         as enrolled,
+            COUNT(DISTINCT s.student_id) as applied,
+            COUNT(DISTINCT CASE WHEN f.event_type = 'enrollment_confirmed' THEN f.student_id END) as enrolled,
             ROUND(COUNT(DISTINCT CASE WHEN f.event_type = 'enrollment_confirmed'
                 THEN f.student_id END) * 100.0 /
-                NULLIF(COUNT(DISTINCT s.student_id), 0))                       as enrollment_rate
+                NULLIF(COUNT(DISTINCT s.student_id), 0)) as enrollment_rate
         FROM dim_students s
         LEFT JOIN fact_student_events f ON s.student_id = f.student_id
         GROUP BY s.country_of_origin
@@ -155,14 +120,8 @@ def get_enrollment_rates():
 
 @app.get("/api/programs")
 def get_programs():
-    """
-    Number of students per program, top 10.
-    """
     return query("""
-        SELECT
-            program,
-            school,
-            COUNT(*) as students
+        SELECT program, school, COUNT(*) as students
         FROM dim_students
         WHERE program IS NOT NULL
         GROUP BY program, school
@@ -173,14 +132,8 @@ def get_programs():
 
 @app.get("/api/degree-levels")
 def get_degree_levels():
-    """
-    Breakdown of students by degree level (Masters, Bachelors, PhD).
-    Used for the donut chart.
-    """
     return query("""
-        SELECT
-            degree_level,
-            COUNT(*) as students
+        SELECT degree_level, COUNT(*) as students
         FROM dim_students
         WHERE degree_level IS NOT NULL
         GROUP BY degree_level
@@ -190,12 +143,9 @@ def get_degree_levels():
 
 @app.get("/api/funding-sources")
 def get_funding_sources():
-    """
-    Breakdown of students by funding source.
-    """
     return query("""
         SELECT
-            funding_source,
+            REPLACE(funding_source, '_', ' ') as funding_source,
             COUNT(*) as students
         FROM dim_students
         WHERE funding_source IS NOT NULL
@@ -204,19 +154,54 @@ def get_funding_sources():
     """)
 
 
-@app.get("/api/events-over-time")
-def get_events_over_time():
+@app.get("/api/visa-status")
+def get_visa_status():
     """
-    Number of events per month over time.
-    Shows pipeline activity trends.
+    Breakdown of visa outcomes: issued, denied, interview_scheduled.
+    Pulled from the staging table since fact_student_events doesn't
+    carry the visa status payload field directly.
     """
     return query("""
         SELECT
-            DATE_TRUNC('month', event_timestamp) as month,
+            payload_status as status,
+            COUNT(*) as count
+        FROM stg_visa_status_change
+        WHERE payload_status IS NOT NULL
+        GROUP BY payload_status
+        ORDER BY count DESC
+    """)
+
+
+@app.get("/api/gender")
+def get_gender():
+    """Breakdown of students by gender."""
+    return query("""
+        SELECT gender, COUNT(*) as students
+        FROM dim_students
+        WHERE gender IS NOT NULL
+        GROUP BY gender
+        ORDER BY students DESC
+    """)
+
+
+@app.get("/api/trend")
+def get_trend():
+    """
+    Monthly event counts for applications, enrollments, and graduations.
+    Shows pipeline activity trends and seasonal patterns.
+    """
+    return query("""
+        SELECT
+            TO_CHAR(DATE_TRUNC('month', event_timestamp), 'YYYY-MM') as month,
             event_type,
-            COUNT(*)                              as events
+            COUNT(*) as events
         FROM fact_student_events
         WHERE event_timestamp IS NOT NULL
+          AND event_type IN (
+              'application_submitted',
+              'enrollment_confirmed',
+              'graduation'
+          )
         GROUP BY DATE_TRUNC('month', event_timestamp), event_type
         ORDER BY month, event_type
     """)

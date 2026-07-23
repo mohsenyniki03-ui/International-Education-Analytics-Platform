@@ -6,36 +6,29 @@
   <title>EduFlow — International Student Analytics</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
-    /* ── TOKENS ── */
     :root {
-      --bg:          #0F172A;
-      --surface:     #1E293B;
-      --surface-2:   #273447;
-      --border:      #334155;
-      --text:        #F1F5F9;
-      --muted:       #94A3B8;
-      --amber:       #F59E0B;
-      --amber-dim:   #78490a;
-      --teal:        #14B8A6;
-      --blue:        #3B82F6;
-      --purple:      #8B5CF6;
-      --coral:       #F87171;
-      --font-data:   'Inter', system-ui, sans-serif;
-      --radius:      12px;
+      --bg:        #0F172A;
+      --surface:   #1E293B;
+      --surface-2: #273447;
+      --border:    #334155;
+      --text:      #F1F5F9;
+      --muted:     #94A3B8;
+      --amber:     #F59E0B;
+      --teal:      #14B8A6;
+      --blue:      #3B82F6;
+      --purple:    #8B5CF6;
+      --coral:     #F87171;
+      --green:     #34D399;
+      --radius:    12px;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: var(--font-data);
+      font-family: 'Inter', system-ui, sans-serif;
       font-size: 14px;
       line-height: 1.6;
-      min-height: 100vh;
     }
-
-    /* ── HEADER ── */
     header {
       border-bottom: 1px solid var(--border);
       padding: 20px 32px;
@@ -43,185 +36,73 @@
       align-items: center;
       justify-content: space-between;
     }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
+    .logo { display: flex; align-items: center; gap: 12px; }
     .logo-mark {
-      width: 36px;
-      height: 36px;
+      width: 36px; height: 36px;
       background: var(--amber);
       border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      font-weight: 800;
-      color: #000;
-      letter-spacing: -1px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 800; color: #000;
     }
-
-    .logo-text {
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-    }
-
-    .logo-sub {
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 400;
-      margin-top: 1px;
-    }
-
-    .header-right {
-      font-size: 12px;
-      color: var(--muted);
-      text-align: right;
-    }
-
+    .logo-text { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
+    .logo-sub { font-size: 12px; color: var(--muted); }
+    .header-right { font-size: 12px; color: var(--muted); text-align: right; }
     .live-dot {
-      display: inline-block;
-      width: 7px;
-      height: 7px;
-      background: var(--teal);
-      border-radius: 50%;
-      margin-right: 6px;
+      display: inline-block; width: 7px; height: 7px;
+      background: var(--teal); border-radius: 50%; margin-right: 6px;
       animation: pulse 2s infinite;
     }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
-    }
-
-    /* ── LAYOUT ── */
-    main {
-      padding: 28px 32px;
-      max-width: 1400px;
-      margin: 0 auto;
-    }
+    main { padding: 28px 32px; max-width: 1400px; margin: 0 auto; }
 
     .section-label {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 14px;
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 14px;
     }
 
-    /* ── METRIC CARDS ── */
+    /* METRICS */
     .metrics-grid {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
-      gap: 12px;
-      margin-bottom: 28px;
+      gap: 12px; margin-bottom: 28px;
     }
-
     .metric-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 18px 20px;
     }
+    .metric-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+    .metric-value { font-size: 28px; font-weight: 700; letter-spacing: -1px; color: var(--amber); line-height: 1; }
+    .metric-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
 
-    .metric-label {
-      font-size: 11px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      margin-bottom: 8px;
-    }
-
-    .metric-value {
-      font-size: 28px;
-      font-weight: 700;
-      letter-spacing: -1px;
-      color: var(--amber);
-      line-height: 1;
-    }
-
-    .metric-sub {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 4px;
-    }
-
-    /* ── FUNNEL ── */
-    .funnel-section {
-      margin-bottom: 28px;
-    }
-
+    /* FUNNEL */
     .funnel-container {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 28px 32px;
-      display: flex;
-      align-items: center;
-      gap: 0;
-    }
-
-    .funnel-stage {
-      flex: 1;
-      text-align: center;
-      position: relative;
-    }
-
-    .funnel-stage:not(:last-child)::after {
-      content: '→';
-      position: absolute;
-      right: -12px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--border);
-      font-size: 20px;
-    }
-
-    .funnel-bar-wrap {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 12px;
-    }
-
-    .funnel-bar {
-      border-radius: 6px;
-      transition: width 1s ease;
-    }
-
-    .funnel-number {
-      font-size: 36px;
-      font-weight: 800;
-      letter-spacing: -2px;
-      line-height: 1;
-    }
-
-    .funnel-stage-label {
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-    }
-
-    .funnel-rate {
-      font-size: 11px;
-      color: var(--teal);
-      margin-top: 4px;
-      font-weight: 500;
-    }
-
-    /* ── CHART GRID ── */
-    .charts-grid {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 16px;
+      display: flex; align-items: center;
       margin-bottom: 28px;
     }
+    .funnel-stage { flex: 1; text-align: center; position: relative; }
+    .funnel-stage:not(:last-child)::after {
+      content: '→'; position: absolute;
+      right: -12px; top: 50%; transform: translateY(-50%);
+      color: var(--border); font-size: 20px;
+    }
+    .funnel-bar-wrap { display: flex; justify-content: center; margin-bottom: 12px; }
+    .funnel-bar { border-radius: 6px; }
+    .funnel-number { font-size: 36px; font-weight: 800; letter-spacing: -2px; line-height: 1; }
+    .funnel-stage-label { font-size: 12px; color: var(--muted); margin-top: 6px; text-transform: uppercase; letter-spacing: 0.8px; }
+    .funnel-rate { font-size: 11px; color: var(--teal); margin-top: 4px; font-weight: 500; }
+
+    /* CHART GRID */
+    .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 28px; }
+    .charts-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 28px; }
+    .charts-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
 
     .chart-card {
       background: var(--surface);
@@ -229,123 +110,50 @@
       border-radius: var(--radius);
       padding: 20px 24px;
     }
+    .chart-title { font-size: 13px; font-weight: 600; margin-bottom: 16px; }
+    .chart-wrap { position: relative; }
 
-    .chart-title {
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 16px;
-      color: var(--text);
-    }
-
-    .chart-wrap {
-      position: relative;
-    }
-
-    /* ── TABLE ── */
-    .table-section {
-      margin-bottom: 28px;
-    }
-
+    /* TABLE */
     .table-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       overflow: hidden;
-    }
-
-    .table-header {
-      padding: 16px 24px;
-      border-bottom: 1px solid var(--border);
-      font-size: 13px;
-      font-weight: 600;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    th {
-      text-align: left;
-      padding: 10px 24px;
-      font-size: 11px;
-      color: var(--muted);
-      font-weight: 500;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      background: var(--surface-2);
-      border-bottom: 1px solid var(--border);
-    }
-
-    td {
-      padding: 11px 24px;
-      border-bottom: 1px solid var(--border);
-      font-size: 13px;
-    }
-
-    tr:last-child td { border-bottom: none; }
-
-    tr:hover td { background: var(--surface-2); }
-
-    .rate-bar-wrap {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .rate-bar-bg {
-      flex: 1;
-      height: 6px;
-      background: var(--border);
-      border-radius: 3px;
-      overflow: hidden;
-    }
-
-    .rate-bar-fill {
-      height: 100%;
-      background: var(--amber);
-      border-radius: 3px;
-      transition: width 1s ease;
-    }
-
-    .rate-num {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--amber);
-      width: 32px;
-      text-align: right;
-    }
-
-    /* ── SECOND CHARTS ROW ── */
-    .charts-grid-3 {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 16px;
       margin-bottom: 28px;
     }
-
-    /* ── LOADING ── */
-    .loading {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 80px;
-      color: var(--muted);
-      font-size: 12px;
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      text-align: left; padding: 10px 24px;
+      font-size: 11px; color: var(--muted); font-weight: 500;
+      letter-spacing: 0.5px; text-transform: uppercase;
+      background: var(--surface-2); border-bottom: 1px solid var(--border);
     }
+    td { padding: 11px 24px; border-bottom: 1px solid var(--border); font-size: 13px; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--surface-2); }
 
+    .rate-bar-wrap { display: flex; align-items: center; gap: 10px; }
+    .rate-bar-bg { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .rate-bar-fill { height: 100%; background: var(--amber); border-radius: 3px; }
+    .rate-num { font-size: 12px; font-weight: 600; color: var(--amber); width: 32px; text-align: right; }
+
+    /* VISA STATUS PILLS */
+    .status-pill {
+      display: inline-block; padding: 2px 10px;
+      border-radius: 999px; font-size: 11px; font-weight: 600;
+    }
+    .status-issued  { background: rgba(52,211,153,0.15); color: var(--green); }
+    .status-denied  { background: rgba(248,113,113,0.15); color: var(--coral); }
+    .status-interview_scheduled { background: rgba(251,191,36,0.15); color: var(--amber); }
+
+    .loading { display:flex; align-items:center; justify-content:center; height:80px; color:var(--muted); font-size:12px; }
     .skeleton {
       background: linear-gradient(90deg, var(--surface-2) 25%, var(--border) 50%, var(--surface-2) 75%);
       background-size: 200% 100%;
       animation: shimmer 1.5s infinite;
-      border-radius: 4px;
-      height: 20px;
+      border-radius: 4px; height: 20px;
     }
-
-    @keyframes shimmer {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
   </style>
 </head>
 <body>
@@ -379,13 +187,20 @@
 
   <!-- FUNNEL -->
   <div class="section-label">Student Pipeline</div>
-  <div class="funnel-section">
-    <div class="funnel-container" id="funnel-container">
-      <div class="loading">Loading pipeline data...</div>
+  <div class="funnel-container" id="funnel-container">
+    <div class="loading">Loading pipeline data...</div>
+  </div>
+
+  <!-- TREND OVER TIME -->
+  <div class="section-label">Activity Over Time</div>
+  <div class="chart-card" style="margin-bottom:28px">
+    <div class="chart-title">Monthly Events — Applications, Enrollments & Graduations</div>
+    <div class="chart-wrap" style="height:240px">
+      <canvas id="trend-chart"></canvas>
     </div>
   </div>
 
-  <!-- COUNTRY + DEGREE CHARTS -->
+  <!-- DEMOGRAPHICS -->
   <div class="section-label">Demographics</div>
   <div class="charts-grid">
     <div class="chart-card">
@@ -402,24 +217,39 @@
     </div>
   </div>
 
+  <!-- GENDER + VISA -->
+  <div class="charts-grid-2">
+    <div class="chart-card">
+      <div class="chart-title">Gender Distribution</div>
+      <div class="chart-wrap" style="height:220px">
+        <canvas id="gender-chart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Visa Status Breakdown</div>
+      <div class="chart-wrap" style="height:160px">
+        <canvas id="visa-chart"></canvas>
+      </div>
+      <div id="visa-table" style="margin-top:12px"></div>
+    </div>
+  </div>
+
   <!-- ENROLLMENT RATE TABLE -->
   <div class="section-label">Enrollment Rates by Country</div>
-  <div class="table-section">
-    <div class="table-card">
-      <table>
-        <thead>
-          <tr>
-            <th>Country</th>
-            <th>Applied</th>
-            <th>Enrolled</th>
-            <th>Enrollment Rate</th>
-          </tr>
-        </thead>
-        <tbody id="enrollment-table">
-          <tr><td colspan="4"><div class="loading">Loading...</div></td></tr>
-        </tbody>
-      </table>
-    </div>
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Country</th>
+          <th>Applied</th>
+          <th>Enrolled</th>
+          <th>Enrollment Rate</th>
+        </tr>
+      </thead>
+      <tbody id="enrollment-table">
+        <tr><td colspan="4"><div class="loading">Loading...</div></td></tr>
+      </tbody>
+    </table>
   </div>
 
   <!-- PROGRAMS + FUNDING -->
@@ -427,13 +257,13 @@
   <div class="charts-grid-3">
     <div class="chart-card" style="grid-column: span 2">
       <div class="chart-title">Top Programs by Enrollment</div>
-      <div class="chart-wrap" style="height:220px">
+      <div class="chart-wrap" style="height:240px">
         <canvas id="programs-chart"></canvas>
       </div>
     </div>
     <div class="chart-card">
       <div class="chart-title">Funding Sources</div>
-      <div class="chart-wrap" style="height:220px">
+      <div class="chart-wrap" style="height:240px">
         <canvas id="funding-chart"></canvas>
       </div>
     </div>
@@ -450,47 +280,55 @@ const COLORS = [
   '#93C5FD','#C4B5FD','#FDE68A','#A7F3D0','#BFDBFE'
 ];
 
-function fmt(n) {
-  return n?.toLocaleString() ?? '—';
-}
+const CHART_DEFAULTS = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { display: false } },
+};
+
+const AXIS_STYLE = {
+  ticks: { color: '#94A3B8', font: { size: 10 } },
+  grid: { color: '#334155' }
+};
+
+function fmt(n) { return n?.toLocaleString() ?? '—'; }
 
 // ── METRICS ────────────────────────────────────────────────────────────────
 async function loadMetrics() {
-  const data = await fetch(`${API}/api/metrics`).then(r => r.json());
+  const d = await fetch(`${API}/api/metrics`).then(r => r.json());
   document.getElementById('metrics-grid').innerHTML = `
     <div class="metric-card">
       <div class="metric-label">Total Students</div>
-      <div class="metric-value">${fmt(data.total_students)}</div>
+      <div class="metric-value">${fmt(d.total_students)}</div>
       <div class="metric-sub">across all programs</div>
     </div>
     <div class="metric-card">
       <div class="metric-label">Enrolled</div>
-      <div class="metric-value">${fmt(data.total_enrolled)}</div>
-      <div class="metric-sub">${data.enrollment_rate}% enrollment rate</div>
+      <div class="metric-value">${fmt(d.total_enrolled)}</div>
+      <div class="metric-sub">${d.enrollment_rate}% enrollment rate</div>
     </div>
     <div class="metric-card">
       <div class="metric-label">Graduated</div>
-      <div class="metric-value">${fmt(data.total_graduated)}</div>
-      <div class="metric-sub">${data.graduation_rate}% of enrolled</div>
+      <div class="metric-value">${fmt(d.total_graduated)}</div>
+      <div class="metric-sub">${d.graduation_rate}% of enrolled</div>
     </div>
     <div class="metric-card">
       <div class="metric-label">Countries</div>
-      <div class="metric-value">${fmt(data.countries_represented)}</div>
+      <div class="metric-value">${fmt(d.countries_represented)}</div>
       <div class="metric-sub">represented</div>
     </div>
     <div class="metric-card">
       <div class="metric-label">Enrollment Rate</div>
-      <div class="metric-value">${data.enrollment_rate}%</div>
+      <div class="metric-value">${d.enrollment_rate}%</div>
       <div class="metric-sub">application to enrollment</div>
     </div>
     <div class="metric-card">
       <div class="metric-label">Graduation Rate</div>
-      <div class="metric-value">${data.graduation_rate}%</div>
+      <div class="metric-value">${d.graduation_rate}%</div>
       <div class="metric-sub">enrolled to graduated</div>
     </div>
   `;
-  document.getElementById('last-updated').textContent =
-    'Updated ' + new Date().toLocaleTimeString();
+  document.getElementById('last-updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
 }
 
 // ── FUNNEL ─────────────────────────────────────────────────────────────────
@@ -498,19 +336,14 @@ async function loadFunnel() {
   const d = await fetch(`${API}/api/funnel`).then(r => r.json());
   const max = d.applied;
   const stages = [
-    { label: 'Applied',    value: d.applied,   color: '#F59E0B', rate: null },
-    { label: 'Enrolled',   value: d.enrolled,  color: '#14B8A6', rate: Math.round(d.enrolled/d.applied*100) + '% of applied' },
-    { label: 'Graduated',  value: d.graduated, color: '#8B5CF6', rate: Math.round(d.graduated/d.enrolled*100) + '% of enrolled' },
+    { label: 'Applied',   value: d.applied,   color: '#F59E0B', rate: null },
+    { label: 'Enrolled',  value: d.enrolled,  color: '#14B8A6', rate: Math.round(d.enrolled/d.applied*100) + '% of applied' },
+    { label: 'Graduated', value: d.graduated, color: '#8B5CF6', rate: Math.round(d.graduated/d.enrolled*100) + '% of enrolled' },
   ];
-
   document.getElementById('funnel-container').innerHTML = stages.map(s => `
     <div class="funnel-stage">
       <div class="funnel-bar-wrap">
-        <div class="funnel-bar" style="
-          width: ${Math.round(s.value/max*140)+40}px;
-          height: 8px;
-          background: ${s.color};
-        "></div>
+        <div class="funnel-bar" style="width:${Math.round(s.value/max*140)+40}px;height:8px;background:${s.color}"></div>
       </div>
       <div class="funnel-number" style="color:${s.color}">${fmt(s.value)}</div>
       <div class="funnel-stage-label">${s.label}</div>
@@ -519,64 +352,126 @@ async function loadFunnel() {
   `).join('');
 }
 
-// ── COUNTRIES CHART ────────────────────────────────────────────────────────
+// ── TREND OVER TIME ────────────────────────────────────────────────────────
+async function loadTrend() {
+  const raw = await fetch(`${API}/api/trend`).then(r => r.json());
+
+  // pivot: months as x-axis, one dataset per event type
+  const months = [...new Set(raw.map(d => d.month))].sort();
+  const types = ['application_submitted', 'enrollment_confirmed', 'graduation'];
+  const labels = { application_submitted: 'Applications', enrollment_confirmed: 'Enrollments', graduation: 'Graduations' };
+  const colors = { application_submitted: '#F59E0B', enrollment_confirmed: '#14B8A6', graduation: '#8B5CF6' };
+
+  const datasets = types.map(t => ({
+    label: labels[t],
+    data: months.map(m => {
+      const row = raw.find(r => r.month === m && r.event_type === t);
+      return row ? row.events : 0;
+    }),
+    borderColor: colors[t],
+    backgroundColor: colors[t] + '22',
+    fill: true,
+    tension: 0.4,
+    pointRadius: 2,
+    borderWidth: 2,
+  }));
+
+  new Chart(document.getElementById('trend-chart'), {
+    type: 'line',
+    data: { labels: months, datasets },
+    options: {
+      ...CHART_DEFAULTS,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          align: 'end',
+          labels: { color: '#94A3B8', font: { size: 11 }, boxWidth: 12, padding: 16 }
+        }
+      },
+      scales: {
+        x: { ...AXIS_STYLE, ticks: { ...AXIS_STYLE.ticks, maxTicksLimit: 12 } },
+        y: { ...AXIS_STYLE, beginAtZero: true }
+      }
+    }
+  });
+}
+
+// ── COUNTRIES ──────────────────────────────────────────────────────────────
 async function loadCountries() {
   const data = await fetch(`${API}/api/countries`).then(r => r.json());
   new Chart(document.getElementById('countries-chart'), {
     type: 'bar',
     data: {
       labels: data.map(d => d.country_of_origin),
-      datasets: [{
-        data: data.map(d => d.students),
-        backgroundColor: data.map((_, i) => COLORS[i % COLORS.length]),
-        borderRadius: 4,
-        borderSkipped: false,
-      }]
+      datasets: [{ data: data.map(d => d.students), backgroundColor: data.map((_,i) => COLORS[i%COLORS.length]), borderRadius: 4, borderSkipped: false }]
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      ...CHART_DEFAULTS,
       scales: {
-        x: {
-          ticks: { color: '#94A3B8', font: { size: 10 }, maxRotation: 40 },
-          grid: { color: '#334155' }
-        },
-        y: {
-          ticks: { color: '#94A3B8', font: { size: 10 } },
-          grid: { color: '#334155' }
-        }
+        x: { ...AXIS_STYLE, ticks: { ...AXIS_STYLE.ticks, maxRotation: 40 } },
+        y: { ...AXIS_STYLE, beginAtZero: true }
       }
     }
   });
 }
 
-// ── DEGREE CHART ───────────────────────────────────────────────────────────
+// ── DEGREE ─────────────────────────────────────────────────────────────────
 async function loadDegrees() {
   const data = await fetch(`${API}/api/degree-levels`).then(r => r.json());
   new Chart(document.getElementById('degree-chart'), {
     type: 'doughnut',
     data: {
       labels: data.map(d => d.degree_level),
-      datasets: [{
-        data: data.map(d => d.students),
-        backgroundColor: ['#F59E0B', '#14B8A6', '#8B5CF6'],
-        borderWidth: 0,
-        hoverOffset: 6,
-      }]
+      datasets: [{ data: data.map(d => d.students), backgroundColor: ['#F59E0B','#14B8A6','#8B5CF6'], borderWidth: 0, hoverOffset: 6 }]
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      cutout: '65%',
-      plugins: {
-        legend: {
-          position: 'bottom',
-          labels: { color: '#94A3B8', font: { size: 11 }, padding: 14 }
-        }
-      }
+      responsive: true, maintainAspectRatio: false, cutout: '65%',
+      plugins: { legend: { position: 'bottom', labels: { color: '#94A3B8', font: { size: 11 }, padding: 14 } } }
     }
   });
+}
+
+// ── GENDER ─────────────────────────────────────────────────────────────────
+async function loadGender() {
+  const data = await fetch(`${API}/api/gender`).then(r => r.json());
+  new Chart(document.getElementById('gender-chart'), {
+    type: 'doughnut',
+    data: {
+      labels: data.map(d => d.gender),
+      datasets: [{ data: data.map(d => d.students), backgroundColor: ['#3B82F6','#F87171','#34D399','#A78BFA'], borderWidth: 0, hoverOffset: 6 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '60%',
+      plugins: { legend: { position: 'bottom', labels: { color: '#94A3B8', font: { size: 11 }, padding: 12 } } }
+    }
+  });
+}
+
+// ── VISA STATUS ────────────────────────────────────────────────────────────
+async function loadVisa() {
+  const data = await fetch(`${API}/api/visa-status`).then(r => r.json());
+  const total = data.reduce((sum, d) => sum + d.count, 0);
+  const colorMap = { issued: '#34D399', denied: '#F87171', interview_scheduled: '#F59E0B' };
+
+  new Chart(document.getElementById('visa-chart'), {
+    type: 'doughnut',
+    data: {
+      labels: data.map(d => d.status.replace(/_/g,' ')),
+      datasets: [{ data: data.map(d => d.count), backgroundColor: data.map(d => colorMap[d.status] || '#94A3B8'), borderWidth: 0, hoverOffset: 4 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '60%',
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  document.getElementById('visa-table').innerHTML = data.map(d => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;font-size:12px">
+      <span class="status-pill status-${d.status}">${d.status.replace(/_/g,' ')}</span>
+      <span style="color:var(--muted)">${fmt(d.count)} &nbsp;<span style="color:var(--text);font-weight:600">${Math.round(d.count/total*100)}%</span></span>
+    </div>
+  `).join('');
 }
 
 // ── ENROLLMENT TABLE ───────────────────────────────────────────────────────
@@ -589,9 +484,7 @@ async function loadEnrollmentRates() {
       <td>${fmt(d.enrolled)}</td>
       <td>
         <div class="rate-bar-wrap">
-          <div class="rate-bar-bg">
-            <div class="rate-bar-fill" style="width:${d.enrollment_rate}%"></div>
-          </div>
+          <div class="rate-bar-bg"><div class="rate-bar-fill" style="width:${d.enrollment_rate}%"></div></div>
           <div class="rate-num">${d.enrollment_rate}%</div>
         </div>
       </td>
@@ -599,9 +492,10 @@ async function loadEnrollmentRates() {
   `).join('');
 }
 
-// ── PROGRAMS CHART ─────────────────────────────────────────────────────────
+// ── PROGRAMS ───────────────────────────────────────────────────────────────
 async function loadPrograms() {
   const data = await fetch(`${API}/api/programs`).then(r => r.json());
+  const max = Math.max(...data.map(d => d.students));
   new Chart(document.getElementById('programs-chart'), {
     type: 'bar',
     data: {
@@ -609,53 +503,32 @@ async function loadPrograms() {
       datasets: [{
         data: data.map(d => d.students),
         backgroundColor: '#3B82F6',
-        borderRadius: 4,
-        borderSkipped: false,
+        borderRadius: 4, borderSkipped: false,
       }]
     },
     options: {
       indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      ...CHART_DEFAULTS,
       scales: {
-        x: {
-          ticks: { color: '#94A3B8', font: { size: 10 } },
-          grid: { color: '#334155' }
-        },
-        y: {
-          ticks: { color: '#94A3B8', font: { size: 11 } },
-          grid: { display: false }
-        }
+        x: { ...AXIS_STYLE, beginAtZero: true, max: Math.ceil(max * 1.15), ticks: { ...AXIS_STYLE.ticks } },
+        y: { ...AXIS_STYLE, grid: { display: false } }
       }
     }
   });
 }
 
-// ── FUNDING CHART ──────────────────────────────────────────────────────────
+// ── FUNDING ────────────────────────────────────────────────────────────────
 async function loadFunding() {
   const data = await fetch(`${API}/api/funding-sources`).then(r => r.json());
   new Chart(document.getElementById('funding-chart'), {
     type: 'doughnut',
     data: {
-      labels: data.map(d => d.funding_source.replace(/_/g, ' ')),
-      datasets: [{
-        data: data.map(d => d.students),
-        backgroundColor: COLORS.slice(0, data.length),
-        borderWidth: 0,
-        hoverOffset: 6,
-      }]
+      labels: data.map(d => d.funding_source),
+      datasets: [{ data: data.map(d => d.students), backgroundColor: COLORS.slice(0, data.length), borderWidth: 0, hoverOffset: 6 }]
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      cutout: '60%',
-      plugins: {
-        legend: {
-          position: 'bottom',
-          labels: { color: '#94A3B8', font: { size: 10 }, padding: 8 }
-        }
-      }
+      responsive: true, maintainAspectRatio: false, cutout: '60%',
+      plugins: { legend: { position: 'bottom', labels: { color: '#94A3B8', font: { size: 10 }, padding: 8, boxWidth: 10 } } }
     }
   });
 }
@@ -664,13 +537,15 @@ async function loadFunding() {
 Promise.all([
   loadMetrics(),
   loadFunnel(),
+  loadTrend(),
   loadCountries(),
   loadDegrees(),
+  loadGender(),
+  loadVisa(),
   loadEnrollmentRates(),
   loadPrograms(),
   loadFunding(),
-]).catch(err => console.error('Dashboard load error:', err));
+]).catch(err => console.error('Dashboard error:', err));
 </script>
-
 </body>
 </html>
