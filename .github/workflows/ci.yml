@@ -91,6 +91,9 @@ jobs:
         run: |
           cd eduflow_dbt
           dbt seed --profiles-dir .
+      - name: Check seeded tables
+        run: |
+          PGPASSWORD=airflow psql -h localhost -U airflow -d eduflow_warehouse -c "\dt"
       - name: Run dbt models
         run: |
           cd eduflow_dbt
